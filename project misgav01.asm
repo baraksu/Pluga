@@ -1,4 +1,4 @@
-; VERSION 100
+; VERSION 102
 .MODEL small
 .STACK 100h
 
@@ -19,6 +19,7 @@ msg4_2 db 13,10,'the number of soldiers in the next one is:',13,10,'$'
 msg5 db 13,10,'the kita with the max soldiers is:',13,10,'$'
 msg6 db 13,10,'the number of soldiers in this kita is:',13,10,'$'
 msg7 db 13,10,'the number of the mahlaka with the kita with the max soldiers is:',13,10,'$'
+msg db 13,10,"supported values from -127 to 128",13,10, "enter the number: $"
 sum dw 0
 maxKita db 0   ;we need to get the max so we will chack the kitas if 
                ;it greater the the max value and if it will we wiil put the kitavalue into maxKita in part D        
@@ -32,8 +33,7 @@ mov ds,ax
 
 call getMahlaka ;get number of mahlakas
 call getKita ;get number of kitas 
-msg db 13,10,"supported values from -127 to 128",13,10
-     db "enter the number: $"
+
 ; print the message1:
 mov dx, offset msg
 mov ah, 9
