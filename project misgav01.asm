@@ -1,11 +1,12 @@
-; VERSION 102
+;version 117 final
+
 .MODEL small
 .STACK 100h
 
 .DATA 
-mahlaka db ?
-kita db ?
-sizeOfPluga dw ?  
+mahlaka db ? ;number of mahlakas
+kita db ?    ;number of kitas
+sizeOfPluga dw ?  ;size of the array mahlaka*kita
 part_a db 13,10,'part A!',13,10,'$'
 part_b db 13,10,'part B!',13,10,'$'
 part_c db 13,10,'part C!',13,10,'$'
@@ -19,7 +20,6 @@ msg4_2 db 13,10,'the number of soldiers in the next one is:',13,10,'$'
 msg5 db 13,10,'the kita with the max soldiers is:',13,10,'$'
 msg6 db 13,10,'the number of soldiers in this kita is:',13,10,'$'
 msg7 db 13,10,'the number of the mahlaka with the kita with the max soldiers is:',13,10,'$'
-msg db 13,10,"supported values from -127 to 128",13,10, "enter the number: $"
 sum dw 0
 maxKita db 0   ;we need to get the max so we will chack the kitas if 
                ;it greater the the max value and if it will we wiil put the kitavalue into maxKita in part D        
@@ -32,29 +32,29 @@ mov ax,@data ;data to dataSegment
 mov ds,ax                       
 
 call getMahlaka ;get number of mahlakas
-call getKita ;get number of kitas 
-
-; print the message1:
-mov dx, offset msg
-mov ah, 9
+call getKita ;get number of kitas
+lea dx,msg3 ;print msg3
+mov ah,9
 int 21h
 
-xor ax,ax
-xor dx,dx
-xor cx,cx
-call scan_num ; get the number to cx.
-
+mov si,0 ;counter for the array
+mov cx,sizeOfPluga 
+insertLoop: ;insert the number of soldiers in the kitas
+    push cx
+    call scan_num ; get the number to cx.
+    lea dx,crlf ;enter line
+    mov ah,9
+    int 21h
+    lea bx,pluga ;put the number that was inserted in the array
+    mov [bx+si],cl
+    inc si       
+    pop cx
+    loop insertLoop
+    
+    
 mov bx, cx
 
 
-
-
-; wait for any key....
-mov ah, 0
-int 16h
-
-
-ret ; return to operating system.
 ; this macro prints a char in al and advances the current cursor position:
 putc    macro   char
         push    ax
@@ -63,7 +63,8 @@ putc    macro   char
         int     10h     
         pop     ax
 endm
-call NOSIEM ;number of soldiers in each mahlaka
+
+call NOSIEM
 call maxMahlakaAndKitaSoldiers
 
 
@@ -73,7 +74,7 @@ exit:
 mov ah, 4ch ;end program
 int 21h
 
-proc getMahlaka ;get number of mahlakas  
+proc getMahlaka ;get number of mahlakas ;parameters:mahlaka 
     lea dx,part_a ;print part A
     mov ah,9
     int 21h
@@ -92,9 +93,9 @@ proc getMahlaka ;get number of mahlakas
         ja numberOfMahlakasAndCheck:  
         sub mahlaka,30h  
     ret 
-endp getMahlaka 
+endp getMahlaka ;;the proc get a digit from the user check if its a number if not insert a digit again and put it in mahlaka
 
-proc getKita ;get number of kitas 
+proc getKita ;get number of kitas and create pluga (the array) ;parameters:kita
     lea dx,part_b ;print part B
     mov ah,9
     int 21h
@@ -107,12 +108,12 @@ proc getKita ;get number of kitas
     mov ah,1
     int 21h
     cmp al,'0'
-    jb numberOfKitasAndCheck
+    jb numberOfKitasAndCheck ;not a number
     cmp al,'9'
-    ja numberOfKitasAndCheck
+    ja numberOfKitasAndCheck ;not a number
     mov kita,al 
-    sub kita,30h
-    sub al,30h
+    sub kita,30h ;to get the number itself
+    sub al,30h 
     
     mul mahlaka         ;size of the pluga
     mov sizeOfpluga,ax
@@ -120,11 +121,11 @@ proc getKita ;get number of kitas
     pluga db sizeOfpluga dup(0) ;create the mat
     
     ret
-endp getKita
+endp getKita ;the proc get a digit from the user check if its a number if not insert a digit again and put it in kita
 
 ; this procedure gets the multi-digit signed number from the keyboard,
 ; and stores the result in cx register:
-scan_num        proc    near
+scan_num        proc    near ;from the ToBin code 
         push    dx
         push    ax
         push    si
@@ -235,25 +236,26 @@ not_minus:
         ret
 make_minus      db      ?       ; used as a flag.
 ten             dw      10      ; used as multiplier.
-scan_num        endp
+scan_num        endp ;the proc get a multiply digits number from the user chack if its a number, delete ot enter if enter end the insert if delete its delete the last number that was inserted if its not a number delete it and wait for the next digit. 
 
-proc NOSIEM ;number of soldiers in each mahlaka
-    lea dx,part_d
+proc NOSIEM ;print the number of soldiers in each mahlaka ;parameters:mahlakaa, sizeOfPluga, kita, pluga, sum, 
+    lea dx,part_d ; print part d
     mov ah,9
     int 21h
     xor cx,cx
-    mov cl,mahlaka
-    sub cx,sizeOfPluga
+    mov cl,mahlaka  ;for the loop
+    sub cx,sizeOfPluga;because mahlaka grew the value of sizeOfPluga
     xor si,si  
     xor bp,bp
     mahlakaloop: 
-        push cx
+        push cx ;for keeping it and for the inside loop
         xor cx,cx
-        mov cl,kita
+        mov cl,kita ;for the loop
         numberOfSoldiersloop:
-            xor ax,ax
-            mov al,pluga[si]
-            add sum,ax
+            xor ax,ax 
+            lea bx,pluga
+            mov al,[bx+si] ;put the value of the array's [si] cell in al
+            add sum,ax ;ax because it will be just in al cut sum is a word
             inc si 
             loop numberOfsoldiersloop 
             mov ax,sum
@@ -262,116 +264,131 @@ proc NOSIEM ;number of soldiers in each mahlaka
             push cx
             push dx  
     
-        mov bx,10
+        mov bx,10 ;divide in 10 later
         xor cx,cx 
         convertLoop:
             xor dx,dx
-            div bx
-            add dx,'0'
-            push dx
+            div bx ;divide the sum in 10
+            add dx,'0' ;the modolu - add 48 
+            push dx ;push it to the stack so we will pop it out and print it according to the order
             inc cx
             cmp ax,0
-            jne convertLoop
+            jne convertLoop ;push all the digits of sum
         
         cmp bp,0
-        je firstMahlakaPrint
+        je firstMahlakaPrint 
         jmp anotherMahlaka
         
         firstMahlakaPrint:
-            lea dx,msg4
+            lea dx,msg4 ;print msg4
             mov ah,9
             int 21h 
             inc bp
             jmp printLoop
         anotherMahlaka:
-            lea dx,msg4_2
+            lea dx,msg4_2 ;print mag4_2
             mov ah,9
             int 21h     
         printLoop:
             
-            pop dx
-            mov ah,02h
+            pop dx   ;pop the digits of sum
+            mov ah,02h  ;print the digits one after one
             int 21h
             loop printLoop   
         pop dx
         pop cx
         pop bx
         pop ax
-        mov sum,0
+        mov sum,0 ;for the next mahlkaka
         pop cx
         loop mahlakaloop                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
     ret
-endp NOSIEM
+endp NOSIEM ;calculate the sum of soldiers in each mahlaka and print it
 
-proc maxMahlakaAndKitaSoldiers ;find the kita and the nahlaka with the max soldiers 
-    lea dx,part_e
+proc maxMahlakaAndKitaSoldiers ;find the kita and the nahlaka with the max soldiers ;parameters:mahlaka, kita, sizeOfPluga, newMax, pluga, maxKitaNumber, maxMahlaka, maxKita 
+    lea dx,part_e ;print part e
     mov ah,9
     int 21h 
-    lea dx,msg7
+    lea dx,msg7  ;print msg7
     int 21h      
     xor cx,cx               
     mov cl,mahlaka ;how many times in the mahlaka loop
-    sub cx,sizeOfPluga
+    sub cx,sizeOfPluga ;because mahlaka grew the value of sizeOfPluga
     xor si,si
     mahlakaLoop2:
         push cx ;for keeping the value because the inside loop that using cx too
         xor cx,cx
         mov cl,kita ;hoe many times in the kita loop
         kitaLoop:    
-        mov al,maxKita 
-            cmp pluga[si],al ;check if the kita: pluga[si] is greater than the maxKita
-            ja newMax 
+            mov al,maxKita ;put the value of maxkita in al for line 325
+            lea bx,pluga 
+            cmp [bx+si],al ;check if the kita: pluga[si] is greater than the maxKita
+            ja newMax ;there is a new maxkita
             jmp continue ;if tyhe kita isn't greater
             newMax:
-                mov al,pluga[si] ;because the kita: pluga[si] is greater tham max we put the kita's value int the max               
-                mov maxKita,al
-                mov maxKitaNumber,si
+                mov al,[bx+si] ;because the kita: pluga[si] is greater tham max we put the kita's value int the max               
+                mov maxKita,al ;put the new maxkita in maxkita
+                mov maxKitaNumber,si ;the number of the maxkita in the array
                 inc maxKitaNumber ;si start from 0 bet the number of the kitas from 1
                 mov maxMahlaka,si               
-                inc maxMahlaka
+                inc maxMahlaka ;because its start from 0 not from 1
             continue:
                 inc si
             loop kitaLoop
-        pop cx
+        pop cx ;for the loop
         loop mahlakaLoop2
         
         xor ax,ax 
         mov ax,maxMahlaka   
-        div kita 
+        div kita ;get the max mahlaka number
         cmp ah,0
-        jne maxMahlakaIsNum1
-        mov dl,al
-        add dl,30h
+        je clearly ;if ah(modolu) equal 0 the max mahlaka is just al
+        cmp al,0
+        je mahlaka1 ;if al equal 0 its the first mahlaka (the maxMahlaka)
+        
+        mov dl,al ;print the number of the max mahlaka
+        add dl,31h ;31 and not 30 because its start from 0 and we want it to atart from 1
         mov ah,2
         int 21h
-        jmp con
-        maxMahlakaIsNum1:
-            mov dl,'1'
-            mov ah,2
-            int 21h
-        con:    
-        mov ah,9
-        lea dx,msg5
+        jmp con1
+        
+        clearly:
+        mov dl,al  ;print the number of the max mahlaka
+        add dl,30h 
+        mov ah,2
+        int 21h
+        jmp con1
+        
+        mahlaka1:
+        mov dl,'1' ;print the number of the max mahlaka
+        mov ah,2
+        int 21h
+        
+        con1:
+        mov ah,9 ;print msg5
+        lea dx,msg5                           
         int 21h
         xor ax,ax
         mov al,mahlaka
         sub ax,sizeOfPluga ;it will be just in al and not in ah
         mov mahlaka,al
         mov ax,maxKitaNumber
-        div mahlaka
-        cmp ah,0
-        jne maxKitaIsNum1
+        div mahlaka ;get the max kita number because till now we had the maxnKitaNumber of the whole array
+        cmp al,0
+        je kita1 ;if the number is 0 its the first kita
         mov dl,al
-        add dl,30h
+        add dl,30h ;print the number of the kita
+        mov ah,2
+        int 21h 
+        jmp con2
+        
+        kita1:  ;print if the maxKitaNumber is 1
+        mov dl,'1'
         mov ah,2
         int 21h
-        jmp con1:
-        maxKitaIsNum1:
-            mov dl,'1'
-            mov ah,2
-            int 21h
-        con1:     
-        lea dx,msg6
+        
+        con2:
+        lea dx,msg6 ;print msg6
         mov ah,9
         int 21h
         xor ah,ah
@@ -380,27 +397,29 @@ proc maxMahlakaAndKitaSoldiers ;find the kita and the nahlaka with the max soldi
         push bx
         push cx
         push dx
-        mov bx,10
+        mov bx,10 ;for divide in 10
         xor cx,cx
         convertLoop2:
             xor dx,dx
-            div bx
-            add dx,'0'
+            div bx ;get one after one dig and push it so kater we will be able to print it accordint to the original order
+            add dx,'0' ;become the number
             push dx
             inc cx
-            cmp ax,0
+            cmp ax,0  ;divide in 10 and push till we have no more digits of maxKita
             jne convertLoop2
-        pop dx
-        mov dl,maxKita
-        add dl,30h
-        mov ah,2
-        int 21h
+        printLoop2:
+            pop dx ;will be just in dl
+            mov ah,2 ;print the dig
+            int 21h
+            loop printLoop2
+        
         pop dx
         pop cx
         pop bx
         pop ax            
     ret
-endp maxMahlakaAndKitaSoldiers
-
-
+endp maxMahlakaAndKitaSoldiers ;print the number of the mahlaka with the kita with the max soldiers
+                               ;print the number of the kita with the max Soldiers
+                               ;print the number of the soldiers of the kita with the max number of soldiers
+                               
 END
