@@ -15,15 +15,21 @@ C Find the Kita and Machlaka with Max Solders
 
 ![image](https://github.com/baraksu/Pluga/assets/132656836/c1288001-845f-4a2f-83a2-775a9b052078) -  חלק אחד של ההרצה1
 קלט של מספר מחלקות וכיתות ומספרי החיילים בכל כיתה
+
 ![image](https://github.com/baraksu/Pluga/assets/132656836/8f1000a4-be69-41ee-94d3-ba7a25620279) -  חלק שתיים של ההרצה1
 הדפסת סכום החיילים בכל מחלקה וכתובת ומספר החיילים הכיתה עם מספר החיילים הגבוה ביותר
+
 ![image](https://github.com/baraksu/Pluga/assets/132656836/91d13b12-6eb9-4eed-8a7b-75a74ef6bf9b) - חלק ראשון של הרצה 2
 קלט מספר מחלקות וכיתות ומספר החיילים בכל כיתה
+
 ![image](https://github.com/baraksu/Pluga/assets/132656836/a4f1a70e-7e07-41ef-a6a0-bc05019206b0) - חלק שני של הרצה 2
 הדפסת סכום החיילים בכל מחלקה וכתובת ומספר החיילים הכיתה עם מספר החיילים הגבוה ביותר
+
 ![image](https://github.com/baraksu/Pluga/assets/132656836/348288a1-edbe-4407-bc19-94d47f76038f) - חלק ראשון של הרצה 3 
 קלט של מספר מחלקות וכיתות ומספרי החיילים בכל כיתה
+
 ![image](https://github.com/baraksu/Pluga/assets/132656836/c1dc3179-1cc9-4b90-94e3-44bb45a64c84) - חלק שני של הרצה 3 
+
 הדפסת סכום החיילים בכל מחלקה וכתובת ומספר החיילים הכיתה עם מספר החיילים הגבוה ביותר
 
 
