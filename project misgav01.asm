@@ -3,7 +3,10 @@
 .MODEL small
 .STACK 100h
 
-.DATA 
+.DATA    
+
+
+
 mahlaka db ? ;number of mahlakas
 kita db ?    ;number of kitas
 sizeOfPluga dw ?  ;size of the array mahlaka*kita
@@ -26,29 +29,45 @@ maxKita db 0   ;we need to get the max so we will chack the kitas if
 maxKitaNumber dw 0
 maxMahlaka dw 0 ;part e            
 crlf db 13,10,'$' 
+msg10 db 13,10,'the next kita',13,10,'$'
+temp01 dw 0
+msg100 db      '      _                 ',13,10,
+       db      ' _ __| |_  _ __ _ __ _  ',13,10,
+       db      '| ,_ \ | || / _` / _` | ',13,10,
+       db      '| .__/_|\_,_\__, \__,_| ',13,10,
+       db      '|_|         |___/       ',13,10,'$'
 .CODE      
 strat:
 mov ax,@data ;data to dataSegment
 mov ds,ax                       
-
+lea dx,msg100
+mov ah,9
+int 21h
+xor ax,ax
+xor dx,dx
 call getMahlaka ;get number of mahlakas
 call getKita ;get number of kitas
+pluga db sizeOfpluga dup(0) ;create the mat
 lea dx,msg3 ;print msg3
 mov ah,9
 int 21h
 
 mov si,0 ;counter for the array
-mov cx,sizeOfPluga 
+mov cx,sizeOfPluga
 insertLoop: ;insert the number of soldiers in the kitas
-    push cx
+    
+    mov temp01,cx
+    lea dx,msg10
+    mov ah,9
+    int 21h 
     call scan_num ; get the number to cx.
     lea dx,crlf ;enter line
     mov ah,9
     int 21h
     lea bx,pluga ;put the number that was inserted in the array
     mov [bx+si],cl
-    inc si       
-    pop cx
+    inc si      
+    mov cx,temp01
     loop insertLoop
     
     
@@ -117,8 +136,6 @@ proc getKita ;get number of kitas and create pluga (the array) ;parameters:kita
     
     mul mahlaka         ;size of the pluga
     mov sizeOfpluga,ax
-    
-    pluga db sizeOfpluga dup(0) ;create the mat
     
     ret
 endp getKita ;the proc get a digit from the user check if its a number if not insert a digit again and put it in kita
@@ -423,3 +440,4 @@ endp maxMahlakaAndKitaSoldiers ;print the number of the mahlaka with the kita wi
                                ;print the number of the soldiers of the kita with the max number of soldiers
                                
 END
+
